@@ -35,7 +35,7 @@ class InteractionManager(private var interactionImplementations: Seq[Interaction
     *
     * @param implementation
     */
-  def addImplementation(implementation: InteractionImplementation) =
+  def addImplementation(implementation: InteractionImplementation): Unit =
     interactionImplementations :+= implementation
 
   /**
