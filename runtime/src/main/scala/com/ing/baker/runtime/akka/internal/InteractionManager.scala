@@ -3,7 +3,7 @@ package com.ing.baker.runtime.akka.internal
 import java.util.concurrent.ConcurrentHashMap
 
 import com.ing.baker.il.petrinet.InteractionTransition
-import com.ing.baker.runtime.common.InteractionImplementation
+import com.ing.baker.runtime.scaladsl.InteractionImplementation
 
 import scala.compat.java8.FunctionConverters._
 
@@ -20,9 +20,10 @@ class InteractionManager(private var interactionImplementations: Seq[Interaction
 
   private def isCompatibleImplementation(interaction: InteractionTransition, implementation: InteractionImplementation): Boolean = {
     interaction.originalInteractionName == implementation.name &&
-      implementation.inputTypes.size == interaction.requiredIngredients.size &&
-      implementation.inputTypes.zip(interaction.requiredIngredients.map(_.`type`)).forall {
-        case (typeA, typeB) => typeA.isAssignableFrom(typeB)
+      implementation.inputIngredients.size == interaction.requiredIngredients.size &&
+      implementation.inputIngredients.zip(interaction.requiredIngredients).forall {
+        case ((name, type0), descriptor) =>
+          name == descriptor.name && type0.isAssignableFrom(descriptor.`type`)
       }
   }
 

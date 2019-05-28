@@ -11,7 +11,7 @@ import scalapb.GeneratedMessageCompanion
 
 import scala.util.Try
 
-case class AddInteractionHTTPRequest(name: String, uri: String, inputTypes: Seq[Type]) extends BaasRequest
+case class AddInteractionHTTPRequest(name: String, uri: String, inputTypes: Map[String, Type]) extends BaasRequest
 
 object AddInteractionHTTPRequest {
 

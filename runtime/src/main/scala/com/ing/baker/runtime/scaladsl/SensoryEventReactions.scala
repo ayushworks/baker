@@ -6,10 +6,10 @@ import com.ing.baker.runtime.common.SensoryEventStatus
 
 import scala.concurrent.Future
 
-case class SensoryEventMoments(
+case class SensoryEventReactions(
   received: Future[SensoryEventStatus],
   completed: Future[SensoryEventResult]
-) extends common.SensoryEventMoments[Future] with ScalaApi {
+) extends common.SensoryEventReactions[Future] with ScalaApi {
 
   type Result = SensoryEventResult
 }

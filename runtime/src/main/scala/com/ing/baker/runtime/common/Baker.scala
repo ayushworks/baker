@@ -13,8 +13,9 @@ trait Baker[F[_]] extends LanguageApi { self =>
 
   type Result <: SensoryEventResult { type Language <: self.Language }
 
-  // TODO rename it... Stages? Outcomes? Instances? Instants? Results?
-  type Moments <: SensoryEventMoments[F] { type Language <: self.Language }
+  type Reactions <: SensoryEventReactions[F] { type Language <: self.Language }
+
+  type Implementation <: InteractionImplementation[F] { type Language <: self.Language }
 
   type Event <: RuntimeEvent { type Language <: self.Language }
 
@@ -89,7 +90,7 @@ trait Baker[F[_]] extends LanguageApi { self =>
     * @param processId The process identifier
     * @param event     The event object
     */
-  def fireSensoryEvent(processId: String, event: Event): Moments
+  def fireSensoryEvent(processId: String, event: Event): Reactions
 
   /**
     * Notifies Baker that an event has happened and waits until the event was accepted but not executed by the process.
@@ -129,7 +130,7 @@ trait Baker[F[_]] extends LanguageApi { self =>
     * @param event     The event object
     * @param correlationId Id used to ensure the process instance handles unique events
     */
-  def fireSensoryEvent(processId: String, event: Event, correlationId: String): Moments
+  def fireSensoryEvent(processId: String, event: Event, correlationId: String): Reactions
 
   /**
     * Notifies Baker that an event has happened and waits until the event was accepted but not executed by the process.
@@ -169,7 +170,7 @@ trait Baker[F[_]] extends LanguageApi { self =>
     * @param event     The event object
     * @param correlationId Id used to ensure the process instance handles unique events
     */
-  def fireSensoryEvent(processId: String, event: Event, correlationId: language.Option[String]): Moments
+  def fireSensoryEvent(processId: String, event: Event, correlationId: language.Option[String]): Reactions
 
   //TODO why do we have this and do we want to keep this?
   //TODO why is this named index when it return ProcessMetaData?
@@ -187,15 +188,17 @@ trait Baker[F[_]] extends LanguageApi { self =>
 
   /**
     * Returns the process state.
+    *   fails with: NoSuchProcessException ("If the process is not found")
     *
     * @param processId The process identifier
     * @return The process state.
     */
-  @throws[NoSuchProcessException]("When no process exists for the given id")
   def getProcessState(processId: String): F[PState]
 
   /**
     * Returns all provided ingredients for a given process id.
+    *   fails with: ProcessDeletedException ("If the process is already deleted")
+    *   fails with: NoSuchProcessException ("If the process is not found")
     *
     * @param processId The process id.
     * @return The provided ingredients.
@@ -206,7 +209,8 @@ trait Baker[F[_]] extends LanguageApi { self =>
   //I think its strange this is a future from user perspective
   /**
     * Returns the visual state (.dot) for a given process.
-    *
+    *   fails with: ProcessDeletedException ("If the process is already deleted")
+    *   fails with: NoSuchProcessException ("If the process is not found")
     * @param processId The process identifier.
     * @return A visual (.dot) representation of the process state.
     */
@@ -226,30 +230,19 @@ trait Baker[F[_]] extends LanguageApi { self =>
     */
   def registerEventListener(listener: EventListener): F[Unit]
 
-  //TODO remove AnyRef as a valid implementation.
-  //Provide a helper method to go from AnyRef to InteractionImplementation
-  /**
-    * Adds an interaction implementation to baker.
-    *
-    * This is assumed to be a an object with a method named 'apply' defined on it.
-    *
-    * @param implementation The implementation object
-    */
-  def addImplementation(implementation: AnyRef): F[Unit]
-
   /**
     * Adds a sequence of interaction implementation to baker.
     *
     * @param implementations The implementation object
     */
-  def addImplementations(implementations: language.Seq[AnyRef]): F[Unit]
+  def addImplementations(implementations: language.Seq[Implementation]): F[Unit]
 
   /**
     * Adds an interaction implementation to baker.
     *
     * @param implementation An InteractionImplementation instance
     */
-  def addImplementation(implementation: InteractionImplementation): F[Unit]
+  def addImplementation(implementation: Implementation): F[Unit]
 
   /**
     * Attempts to gracefully shutdown the baker system.

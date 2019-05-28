@@ -11,7 +11,7 @@ import cats.data.NonEmptyList
 import com.ing.baker.il.{CompiledRecipe, RecipeVisualStyle}
 import com.ing.baker.runtime.akka._
 import com.ing.baker.runtime.common
-import com.ing.baker.runtime.common.{EventListener, InteractionImplementation, ProcessMetadata, RecipeInformation, SensoryEventStatus}
+import com.ing.baker.runtime.common.{EventListener, ProcessMetadata, RecipeInformation, SensoryEventStatus}
 import com.ing.baker.runtime.common.LanguageDataStructures.JavaApi
 import com.ing.baker.runtime.scaladsl
 import com.ing.baker.types.Value
@@ -48,7 +48,9 @@ class Baker private(private val baker: scaladsl.Baker) extends common.Baker[Comp
 
   override type Result = SensoryEventResult
 
-  override type Moments = SensoryEventMoments
+  override type Reactions = SensoryEventReactions
+
+  override type Implementation = InteractionImplementation
 
   override type Event = RuntimeEvent
 
@@ -70,24 +72,16 @@ class Baker private(private val baker: scaladsl.Baker) extends common.Baker[Comp
     *
     * @param implementation The implementation that should be added.
     */
-  def addImplementation(@Nonnull implementation: AnyRef): CompletableFuture[Unit] =
-    toCompletableFuture(baker.addImplementation(implementation))
-
-  /**
-    * Adds a single interaction implementation to baker.
-    *
-    * @param implementation The implementation that should be added.
-    */
   def addImplementation(@Nonnull implementation: InteractionImplementation): CompletableFuture[Unit] =
-    toCompletableFuture(baker.addImplementation(implementation))
+    toCompletableFuture(baker.addImplementation(implementation.asScala))
 
   /**
     * Adds all the provided interaction implementations to baker.
     *
     * @param implementations An iterable of implementations that should be added.
     */
-  def addImplementations(@Nonnull implementations: java.util.List[AnyRef]): CompletableFuture[Unit] =
-    toCompletableFuture(baker.addImplementations(implementations.asScala))
+  def addImplementations(@Nonnull implementations: java.util.List[InteractionImplementation]): CompletableFuture[Unit] =
+    toCompletableFuture(baker.addImplementations(implementations.asScala.map(_.asScala)))
 
   /**
     * Attempts to gracefully shutdown the baker system.
@@ -110,7 +104,7 @@ class Baker private(private val baker: scaladsl.Baker) extends common.Baker[Comp
   def fireSensoryEventCompleted(processId: String, event: RuntimeEvent, correlationId: String): CompletableFuture[SensoryEventResult] =
     fireSensoryEventCompleted(processId, event, Optional.of(correlationId))
 
-  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: String): SensoryEventMoments =
+  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: String): SensoryEventReactions =
     fireSensoryEvent(processId, event, Optional.of(correlationId))
 
   def fireSensoryEventReceived(processId: String, event: RuntimeEvent): CompletableFuture[SensoryEventStatus] =
@@ -119,7 +113,7 @@ class Baker private(private val baker: scaladsl.Baker) extends common.Baker[Comp
   def fireSensoryEventCompleted(processId: String, event: RuntimeEvent): CompletableFuture[SensoryEventResult] =
     fireSensoryEventCompleted(processId, event, Optional.empty[String]())
 
-  def fireSensoryEvent(processId: String, event: RuntimeEvent): SensoryEventMoments =
+  def fireSensoryEvent(processId: String, event: RuntimeEvent): SensoryEventReactions =
     fireSensoryEvent(processId, event, Optional.empty[String]())
 
   def fireSensoryEventReceived(processId: String, event: RuntimeEvent, correlationId: Optional[String]): CompletableFuture[SensoryEventStatus] =
@@ -134,9 +128,9 @@ class Baker private(private val baker: scaladsl.Baker) extends common.Baker[Comp
       )
     }
 
-  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: Optional[String]): SensoryEventMoments = {
+  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: Optional[String]): SensoryEventReactions = {
     val scalaResult = baker.fireSensoryEvent(processId, event.asScala)
-    new SensoryEventMoments(
+    new SensoryEventReactions(
       received = toCompletableFuture(scalaResult.received),
       completed = toCompletableFuture(scalaResult.completed).thenApply { result =>
         new SensoryEventResult(

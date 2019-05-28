@@ -36,7 +36,9 @@ trait Baker extends common.Baker[Future] with ScalaApi {
 
   override type Result = SensoryEventResult
 
-  override type Moments = SensoryEventMoments
+  override type Reactions = SensoryEventReactions
+
+  override type Implementation = InteractionImplementation
 
   override type Event = RuntimeEvent
 
@@ -56,7 +58,7 @@ trait Baker extends common.Baker[Future] with ScalaApi {
   def fireSensoryEventCompleted(processId: String, event: RuntimeEvent): Future[Result] =
     fireSensoryEventCompleted(processId, event, None)
 
-  def fireSensoryEvent(processId: String, event: RuntimeEvent): Moments =
+  def fireSensoryEvent(processId: String, event: RuntimeEvent): Reactions =
     fireSensoryEvent(processId, event, None)
 
   def fireSensoryEventReceived(processId: String, event: RuntimeEvent, correlationId: String): Future[SensoryEventStatus] =
@@ -65,7 +67,7 @@ trait Baker extends common.Baker[Future] with ScalaApi {
   def fireSensoryEventCompleted(processId: String, event: RuntimeEvent, correlationId: String): Future[Result] =
     fireSensoryEventCompleted(processId, event, Some(correlationId))
 
-  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: String): Moments =
+  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: String): Reactions =
     fireSensoryEvent(processId, event, Some(correlationId))
 
 }

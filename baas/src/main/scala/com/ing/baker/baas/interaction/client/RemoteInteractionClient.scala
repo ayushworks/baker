@@ -16,7 +16,7 @@ import scala.concurrent.duration.{FiniteDuration, _}
 //This communicates with a RemoteInteractionImplementationClient that execute the request.
 case class RemoteInteractionClient(override val name: String,
                                    uri: String,
-                                   override val inputTypes: Seq[Type])(implicit val actorSystem: ActorSystem) extends InteractionImplementation with ClientUtils {
+                                   override val input: Seq[Type])(implicit val actorSystem: ActorSystem) extends InteractionImplementation with ClientUtils {
 
   override val log = LoggerFactory.getLogger(classOf[RemoteInteractionClient])
 

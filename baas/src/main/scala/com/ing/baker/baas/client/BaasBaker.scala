@@ -10,8 +10,7 @@ import com.ing.baker.baas.util.ClientUtils
 import com.ing.baker.il.{CompiledRecipe, RecipeVisualStyle}
 import com.ing.baker.runtime.akka.events.BakerEvent
 import com.ing.baker.runtime.common.{EventListener, InteractionImplementation, ProcessMetadata, RecipeInformation, SensoryEventStatus}
-import com.ing.baker.runtime.scaladsl.ProcessState
-import com.ing.baker.runtime.scaladsl.{Baker, RuntimeEvent, SensoryEventMoments, SensoryEventResult}
+import com.ing.baker.runtime.scaladsl.{Baker, ProcessState, RuntimeEvent, SensoryEventReactions, SensoryEventResult}
 import com.ing.baker.types.Value
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
@@ -127,7 +126,7 @@ class BaasBaker(config: Config,
     * @param processId The process identifier
     * @param event     The event object
     */
-  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: Option[String]): SensoryEventMoments = ???
+  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: Option[String]): SensoryEventReactions = ???
 
   /**
     * Creates a stream of specific events.

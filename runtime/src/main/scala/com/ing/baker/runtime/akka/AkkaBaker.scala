@@ -10,11 +10,11 @@ import com.ing.baker.runtime.akka.actor.process_index.ProcessIndexProtocol._
 import com.ing.baker.runtime.akka.actor.process_instance.ProcessInstanceProtocol.{Initialized, InstanceState, Uninitialized}
 import com.ing.baker.runtime.akka.actor.recipe_manager.RecipeManagerProtocol._
 import com.ing.baker.runtime.akka.events.{BakerEvent, EventReceived, InteractionCompleted, InteractionFailed}
-import com.ing.baker.runtime.akka.internal.MethodInteractionImplementation
 import com.ing.baker.runtime.scaladsl._
-import com.ing.baker.runtime.common
-import com.ing.baker.runtime.common.{EventListener, InteractionImplementation, ProcessMetadata, SensoryEventStatus}
+import com.ing.baker.runtime.common.{EventListener, ProcessMetadata, SensoryEventStatus}
 import com.ing.baker.runtime.common.BakerException._
+import com.ing.baker.runtime.{common, scaladsl}
+import com.ing.baker.runtime.scaladsl.{Baker, RuntimeEvent, SensoryEventReactions}
 import com.ing.baker.types.Value
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -163,7 +163,7 @@ class AkkaBaker private[runtime](config: AkkaBakerConfig) extends Baker {
         Future.successful(result)
     }
 
-  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: Option[String]): SensoryEventMoments = {
+  def fireSensoryEvent(processId: String, event: RuntimeEvent, correlationId: Option[String]): scaladsl.SensoryEventReactions = {
     val futureRef = FutureRef(config.defaultProcessEventTimeout)
     val futureReceived =
       processIndexActor.ask(ProcessEvent(
@@ -207,7 +207,7 @@ class AkkaBaker private[runtime](config: AkkaBakerConfig) extends Baker {
         case result: SensoryEventResult =>
           Future.successful(result)
       }
-    SensoryEventMoments(futureReceived, futureCompleted)
+    SensoryEventReactions(futureReceived, futureCompleted)
   }
 
   /**
@@ -307,9 +307,7 @@ class AkkaBaker private[runtime](config: AkkaBakerConfig) extends Baker {
   }
 
   private def doRegisterEventListener(listener: EventListener, processFilter: String => Boolean): Future[Unit] = {
-
     registerEventListenerPF {
-
       case EventReceived(_, recipeName, _, processId, _, event) if processFilter(recipeName) =>
         listener.processEvent(processId, event)
       case InteractionCompleted(_, _, recipeName, _, processId, _, Some(event)) if processFilter(recipeName) =>
@@ -365,24 +363,16 @@ class AkkaBaker private[runtime](config: AkkaBakerConfig) extends Baker {
     *
     * @param implementation The implementation object
     */
-  override def addImplementation(implementation: AnyRef): Future[Unit] =
-    Future.successful(config.interactionManager.addImplementation(MethodInteractionImplementation(implementation)))
+  override def addImplementation(implementation: Implementation): Future[Unit] =
+    Future.successful(config.interactionManager.addImplementation(implementation))
 
   /**
     * Adds a sequence of interaction implementation to baker.
     *
     * @param implementations The implementation object
     */
-  override def addImplementations(implementations: Seq[AnyRef]): Future[Unit] =
+  override def addImplementations(implementations: Seq[Implementation]): Future[Unit] =
     Future.successful(implementations.foreach(addImplementation))
-
-  /**
-    * Adds an interaction implementation to baker.
-    *
-    * @param implementation An InteractionImplementation instance
-    */
-  override def addImplementation(implementation: InteractionImplementation): Future[Unit] =
-    Future.successful(config.interactionManager.addImplementation(implementation))
 
   /**
     * Attempts to gracefully shutdown the baker system.
