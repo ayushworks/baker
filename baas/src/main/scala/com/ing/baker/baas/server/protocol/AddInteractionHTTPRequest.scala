@@ -22,13 +22,13 @@ object AddInteractionHTTPRequest {
         protobuf.AddInteractionHTTPRequest
 
       override def toProto(a: AddInteractionHTTPRequest): protobuf.AddInteractionHTTPRequest =
-        protobuf.AddInteractionHTTPRequest(Some(a.name), Some(a.uri), a.inputTypes.map(ctxToProto(_)))
+        protobuf.AddInteractionHTTPRequest(Some(a.name), Some(a.uri), a.inputTypes.mapValues(ctxToProto(_)))
 
       override def fromProto(message: protobuf.AddInteractionHTTPRequest): Try[AddInteractionHTTPRequest] =
         for {
           name <- versioned(message.name, "name")
           uri <- versioned(message.uri, "uri")
-          input <- message.`type`.toList.traverse(ctxFromProto(_))
-        } yield AddInteractionHTTPRequest(name, uri, input)
+          input <- message.input.toList.traverse { case (name0, type0) => ctxFromProto(type0).map(name0 -> _) }
+        } yield AddInteractionHTTPRequest(name, uri, input.toMap)
     }
 }

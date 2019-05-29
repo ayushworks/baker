@@ -9,8 +9,8 @@ import com.ing.baker.baas.server.protocol._
 import com.ing.baker.baas.util.ClientUtils
 import com.ing.baker.il.{CompiledRecipe, RecipeVisualStyle}
 import com.ing.baker.runtime.akka.events.BakerEvent
-import com.ing.baker.runtime.common.{EventListener, InteractionImplementation, ProcessMetadata, RecipeInformation, SensoryEventStatus}
-import com.ing.baker.runtime.scaladsl.{Baker, ProcessState, RuntimeEvent, SensoryEventReactions, SensoryEventResult}
+import com.ing.baker.runtime.common.{EventListener, ProcessMetadata, RecipeInformation, SensoryEventStatus}
+import com.ing.baker.runtime.scaladsl.{Baker, ProcessState, RuntimeEvent, SensoryEventReactions, SensoryEventResult, InteractionImplementation}
 import com.ing.baker.types.Value
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
@@ -187,22 +187,11 @@ class BaasBaker(config: Config,
 
 
   /**
-    * Adds an interaction implementation to baker.
-    *
-    * This is assumed to be a an object with a method named 'apply' defined on it.
-    *
-    * @param implementation The implementation object
-    */
-  override def addImplementation(implementation: AnyRef): Future[Unit] = {
-    Future.successful(remoteInteractionLauncher.addImplementation(implementation))
-  }
-
-  /**
     * Adds a sequence of interaction implementation to baker.
     *
     * @param implementations The implementation object
     */
-  override def addImplementations(implementations: Seq[AnyRef]): Future[Unit] = {
+  override def addImplementations(implementations: Seq[InteractionImplementation]): Future[Unit] = {
     Future.successful(implementations.foreach(addImplementation))
   }
 
