@@ -19,12 +19,24 @@ class InteractionManager(private var interactionImplementations: Seq[Interaction
     new ConcurrentHashMap[InteractionTransition, InteractionImplementation]
 
   private def isCompatibleImplementation(interaction: InteractionTransition, implementation: InteractionImplementation): Boolean = {
-    interaction.originalInteractionName == implementation.name &&
-      implementation.inputIngredients.size == interaction.requiredIngredients.size &&
-      implementation.inputIngredients.zip(interaction.requiredIngredients).forall {
-        case ((name, type0), descriptor) =>
-          name == descriptor.name && type0.isAssignableFrom(descriptor.`type`)
-      }
+    val interactionNameMatches =
+      interaction.originalInteractionName == implementation.name
+    val inputSizeMatches =
+      implementation.inputIngredients.size == interaction.requiredIngredients.size
+    val inputNamesAndTypesMatches =
+      interaction
+        .requiredIngredients
+        .forall { descriptor =>
+          implementation.inputIngredients.exists(_._2.isAssignableFrom(descriptor.`type`))
+        }
+        /* TODO we could do something like this, where we also validate ingredientNames, except the implementations contain original names and the interaction descriptors contain any ingredient rename
+        .map(x => implementation.inputIngredients.get(x.name).map(_ -> x.`type`))
+        .forall {
+          case None => false
+          case Some((typeA, typeB)) => typeA.isAssignableFrom(typeB)
+        }
+        */
+    interactionNameMatches && inputSizeMatches && inputNamesAndTypesMatches
   }
 
   private def findInteractionImplementation(interaction: InteractionTransition): InteractionImplementation =

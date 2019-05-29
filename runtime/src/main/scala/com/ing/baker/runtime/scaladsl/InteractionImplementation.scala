@@ -71,8 +71,8 @@ object InteractionImplementation {
       }
     }
     val inputIngredients: Map[String, Type] = {
-      method.getParameters.map { parameter =>
-        try { parameter.getName -> Converters.readJavaType(parameter.getType) }
+      method.getGenericParameterTypes.zip(method.getParameters).map { case (typ, parameter) =>
+        try { parameter.getName -> Converters.readJavaType(typ) }
         catch { case e: Exception =>
             throw new IllegalArgumentException(s"Unsupported parameter type for interaction implementation '$name'", e)
         }
